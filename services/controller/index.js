@@ -2,8 +2,10 @@ const express = require('express');
 const shipping = require('./shipping');
 const inventory = require('./inventory');
 const cors = require('cors');
+const { json } = require('express');
 
 const app = express();
+app.use(express.json());
 app.use(cors());
 
 /**
@@ -42,22 +44,51 @@ app.get('/shipping/:cep', (req, res, next) => {
     );
 });
 app.get('/product/:id', (req, res, next) => {
-    // Chama método do microsserviço.
+    
     inventory.SearchProductByID({ id: req.params.id }, (err, product) => {
-        // Se ocorrer algum erro de comunicação
-        // com o microsserviço, retorna para o navegador.
+        
         if (err) {
             console.error(err);
             res.status(500).send({ error: 'something failed :(' });
         } else {
-            // Caso contrário, retorna resultado do
-            // microsserviço (um arquivo JSON) com os dados
-            // do produto pesquisado
+            
             res.json(product);
         }
     });
 });
 
+app.post('/product/', (req, res, next) => {
+    const product = req.body;
+    res.json(product);
+    
+    inventory.AddProduct(product , (err, returnedProduct) => {
+        
+        if (err) {
+            console.error(err);
+            res.status(201).send({ error: 'something failed :(' });
+        } else {
+            
+            res.json(returnedProduct);
+        }
+    });
+});
+app.post('/product/:id', (req, res, next) => {
+    const product = req.body;
+    product.id = parseInt(req.params.id);
+
+    
+    
+    inventory.UpdateInventory(product , (err, returnedProduct) => {
+        
+        if (err) {
+            console.error(err);
+            res.status(201).send({ error: 'something failed :(' });
+        } else {
+            
+            res.json(returnedProduct);
+        }
+    });
+});
 
 
 
